@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="description" content="Ishlaringiz uchun o‘zbekcha eslatmalar">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Eslatmachi">
+  <title>Eslatmachi</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-content">
+      <img class="app-logo" src="icons/icon-192.png" alt="" width="58" height="58">
+      <div class="header-copy">
+        <h1>Eslatmachi</h1>
+        <p>Ishlaringiz o‘z vaqtida esingizda bo‘lsin</p>
+      </div>
+      <button class="header-button" id="installButton" type="button">O‘rnatish</button>
+    </div>
+    <div class="header-date" id="todayLabel"></div>
+  </header>
+
+  <main class="main-content">
+    <section class="setup-card" id="notificationCard">
+      <div class="setup-copy">
+        <span class="setup-kicker">ESLATMALAR</span>
+        <h2 id="notificationTitle">Xabarnomalarni yoqing</h2>
+        <p id="notificationText">Vaqtida eslatish uchun xabarnomalarga ruxsat bering.</p>
+      </div>
+      <div class="setup-actions">
+        <button class="button button-primary" id="enableNotifications" type="button">Xabarnomani yoqish</button>
+        <button class="button button-quiet" id="disableNotifications" type="button" hidden>Server xabarnomasini o‘chirish</button>
+      </div>
+    </section>
+
+    <section class="next-card" id="nextCard" hidden>
+      <span class="next-label">KEYINGI ESLATMA</span>
+      <strong id="nextTitle"></strong>
+      <span id="nextTime"></span>
+    </section>
+
+    <div class="list-heading">
+      <div>
+        <h2>Eslatmalar</h2>
+        <span id="activeCount">0 ta faol</span>
+      </div>
+    </div>
+
+    <div class="filters" role="tablist" aria-label="Eslatmalar filtri">
+      <button class="filter-button active" type="button" role="tab" aria-selected="true" data-filter="active">Faol</button>
+      <button class="filter-button" type="button" role="tab" aria-selected="false" data-filter="completed">Bajarilgan</button>
+      <button class="filter-button" type="button" role="tab" aria-selected="false" data-filter="all">Barchasi</button>
+    </div>
+
+    <section class="reminder-list" id="reminderList" aria-live="polite"></section>
+
+    <section class="empty-state" id="emptyState">
+      <img src="icons/icon-192.png" alt="" width="72" height="72">
+      <h2>Hozircha eslatma yo‘q</h2>
+      <p>Birinchi eslatmangizni qo‘shing. U shu qurilmada saqlanadi.</p>
+    </section>
+  </main>
+
+  <div class="add-bar">
+    <button class="button button-primary add-button" id="openEditor" type="button">
+      <span class="plus" aria-hidden="true">+</span>
+      Eslatma qo‘shish
+    </button>
+  </div>
+
+  <div class="sheet-overlay" id="editorOverlay" hidden>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="sheet-heading">
+        <h2 id="editorTitle">Yangi eslatma</h2>
+        <button class="close-button" id="closeEditor" type="button" aria-label="Yopish">×</button>
+      </div>
+      <form id="reminderForm" novalidate>
+        <label class="field">
+          <span>Ish nomi</span>
+          <input id="titleInput" name="title" type="text" maxlength="200" autocomplete="off" required>
+        </label>
+        <div class="form-row">
+          <label class="field">
+            <span>Sana</span>
+            <input id="dateInput" name="date" type="date" required>
+          </label>
+          <label class="field">
+            <span>Vaqt</span>
+            <input id="timeInput" name="time" type="time" required>
+          </label>
+        </div>
+        <label class="field">
+          <span>Takrorlash</span>
+          <select id="repeatInput" name="repeat">
+            <option value="none">Bir marta</option>
+            <option value="daily">Har kuni</option>
+            <option value="weekly">Har hafta</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Izoh (ixtiyoriy)</span>
+          <textarea id="notesInput" name="notes" rows="3" maxlength="500"></textarea>
+        </label>
+        <p class="form-error" id="formError" role="alert" hidden></p>
+        <button class="button button-primary submit-button" id="saveReminder" type="submit">Eslatmani saqlash</button>
+        <button class="button button-secondary submit-button" id="cancelEditor" type="button">Bekor qilish</button>
+      </form>
+    </section>
+  </div>
+
+  <div class="sheet-overlay alert-overlay" id="alertOverlay" hidden>
+    <section class="sheet alert-sheet" role="alertdialog" aria-modal="true" aria-labelledby="alertTitle">
+      <div class="alert-symbol">
+        <img src="icons/icon-192.png" alt="" width="64" height="64">
+      </div>
+      <span class="alert-kicker">ESLATMA VAQTI KELDI</span>
+      <h2 id="alertTitle"></h2>
+      <time id="alertTime"></time>
+      <p id="alertNotes"></p>
+      <button class="button button-primary submit-button" id="alertDone" type="button">Bajarildi</button>
+      <button class="button button-secondary submit-button" id="alertSnooze" type="button">10 daqiqa kechiktirish</button>
+      <button class="button button-quiet submit-button" id="alertClose" type="button">Yopish</button>
+    </section>
+  </div>
+
+  <div class="sheet-overlay" id="installOverlay" hidden>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="installTitle">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="sheet-heading">
+        <h2 id="installTitle">Bosh ekranga qo‘shish</h2>
+        <button class="close-button" id="closeInstall" type="button" aria-label="Yopish">×</button>
+      </div>
+      <div id="installInstructions" class="install-instructions"></div>
+      <button class="button button-primary submit-button" id="browserInstall" type="button" hidden>Ilovani o‘rnatish</button>
+      <button class="button button-secondary submit-button" id="installUnderstood" type="button">Tushunarli</button>
+    </section>
+  </div>
+
+  <template id="reminderTemplate">
+    <article class="reminder-card">
+      <div class="reminder-topline">
+        <span class="status-badge"></span>
+        <span class="repeat-label"></span>
+      </div>
+      <h3 class="reminder-title"></h3>
+      <p class="reminder-notes"></p>
+      <time class="reminder-time"></time>
+      <div class="reminder-actions">
+        <button class="small-button" type="button" data-action="edit">Tahrirlash</button>
+        <button class="small-button complete-action" type="button" data-action="complete">Bajarildi</button>
+        <button class="small-button delete-action" type="button" data-action="delete">O‘chirish</button>
+      </div>
+    </article>
+  </template>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <noscript>Eslatmachi ishlashi uchun JavaScript’ni yoqing.</noscript>
+</body>
+</html>
